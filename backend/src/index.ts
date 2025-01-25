@@ -1,4 +1,3 @@
-// backend/src/index.ts
 import Koa from 'koa';
 import Router from 'koa-router';
 import bodyParser from 'koa-bodyparser';
@@ -8,7 +7,10 @@ import { initDB } from './db';
 import { authMiddleware } from './authMiddleware';
 import { User, PtoRequest } from './types';
 
-const SECRET_KEY = 'SUPER_SECRET_KEY'; 
+import cors = require('@koa/cors');
+
+const SECRET_KEY = process.env.JWT_SECRET_KEY;
+if (!SECRET_KEY) throw new Error('JWT_SECRET_KEY required');
 
 (async () => {
   const db = await initDB();
@@ -17,9 +19,21 @@ const SECRET_KEY = 'SUPER_SECRET_KEY';
 
   app.use(bodyParser());
 
+  app.use(
+    cors({
+      origin:
+        process.env.NODE_ENV === 'development'
+          ? 'http://localhost:8080'
+          : process.env.ALLOWED_URLS
+    })
+  );
+
   // POST /auth/login
   router.post('/auth/login', async (ctx) => {
-    const { email, password } = ctx.request.body as { email: string; password: string };
+    const { email, password } = ctx.request.body as {
+      email: string;
+      password: string;
+    };
     if (!email || !password) {
       ctx.status = 400;
       ctx.body = { error: 'Email and password are required' };
@@ -27,7 +41,9 @@ const SECRET_KEY = 'SUPER_SECRET_KEY';
     }
 
     try {
-      const user = await db.get<User>('SELECT * FROM users WHERE email = ?', [email]);
+      const user = await db.get<User>('SELECT * FROM users WHERE email = ?', [
+        email,
+      ]);
       if (!user) {
         ctx.status = 401;
         ctx.body = { error: 'Invalid credentials' };
@@ -41,7 +57,9 @@ const SECRET_KEY = 'SUPER_SECRET_KEY';
         return;
       }
 
-      const token = jwt.sign({ userId: user.id }, SECRET_KEY, { expiresIn: '1h' });
+      const token = jwt.sign({ userId: user.id }, SECRET_KEY, {
+        expiresIn: '1h',
+      });
       ctx.body = { token };
     } catch (error) {
       console.error(error);
@@ -54,7 +72,10 @@ const SECRET_KEY = 'SUPER_SECRET_KEY';
   router.get('/pto/balance', authMiddleware, async (ctx) => {
     const userId = ctx.state.userId;
     try {
-      const user = await db.get<User>('SELECT * FROM users WHERE id = ?', [userId]);
+      const user = await db.get<User>(
+        'SELECT * FROM users WHERE id = ?',
+        [userId]
+      );
       if (!user) {
         ctx.status = 404;
         ctx.body = { error: 'User not found' };
@@ -104,7 +125,10 @@ const SECRET_KEY = 'SUPER_SECRET_KEY';
     }
 
     try {
-      const user = await db.get<User>('SELECT * FROM users WHERE id = ?', [userId]);
+      const user = await db.get<User>(
+        'SELECT * FROM users WHERE id = ?',
+        [userId]
+      );
       if (!user) {
         ctx.status = 404;
         ctx.body = { error: 'User not found' };
@@ -127,7 +151,10 @@ const SECRET_KEY = 'SUPER_SECRET_KEY';
 
       // update used hours
       const newUsed = user.usedPtoHours + hours;
-      await db.run('UPDATE users SET usedPtoHours = ? WHERE id = ?', [newUsed, userId]);
+      await db.run(
+        'UPDATE users SET usedPtoHours = ? WHERE id = ?',
+        [newUsed, userId]
+      );
 
       ctx.body = { message: 'PTO request submitted successfully' };
     } catch (error) {
