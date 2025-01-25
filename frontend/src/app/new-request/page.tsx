@@ -1,36 +1,18 @@
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format, parse, isValid, isBefore, endOfYesterday } from 'date-fns';
 import { useState } from 'react';
+import { api } from '@/lib/api';
 
-import {
-    Breadcrumb,
-    BreadcrumbItem,
-    BreadcrumbLink,
-    BreadcrumbList,
-    BreadcrumbPage,
-    BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
-
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { useToast } from '@/hooks/use-toast';
-import {
-    Form,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormControl,
-    FormMessage,
-} from '@/components/ui/form';
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-
-// **Import a loader icon** from lucide-react or your icon set
 import { Loader2 } from 'lucide-react';
-
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { CalendarIcon } from 'lucide-react';
@@ -45,9 +27,8 @@ const requestSchema = z.object({
 export default function NewRequestPage() {
     const navigate = useNavigate();
     const { toast } = useToast();
-
-    const [open, setOpen] = useState(false); // controls date popover
-    const [loading, setLoading] = useState(false); // controls loader in the submit button
+    const [open, setOpen] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const form = useForm<z.infer<typeof requestSchema>>({
         resolver: zodResolver(requestSchema),
@@ -76,9 +57,9 @@ export default function NewRequestPage() {
         }
 
         try {
-            setLoading(true); // show spinner
+            setLoading(true);
             const headers = { Authorization: `Bearer ${token}` };
-            await axios.post('/pto/request', values, { headers });
+            await api.post('/pto/request', values, { headers });
 
             toast({
                 title: 'Success',
@@ -92,13 +73,12 @@ export default function NewRequestPage() {
                 variant: 'destructive',
             });
         } finally {
-            // Keep the button in loading state for a moment if you'd like, or reset it:
             setLoading(false);
         }
     }
 
     return (
-        <div className="max-w-[400px] w-full mx-auto pt-24">
+        <div className="max-w-[400px] w-full mx-auto pt-24 px-6">
             <Breadcrumb>
                 <BreadcrumbList>
                     <BreadcrumbItem>
@@ -115,7 +95,6 @@ export default function NewRequestPage() {
 
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                    {/* Date Field */}
                     <FormField
                         control={form.control}
                         name="requestDate"
@@ -197,10 +176,7 @@ export default function NewRequestPage() {
 
                     <div className="grid grid-flow-col gap-4">
                         <Button type="submit" disabled={loading} className="relative">
-                            {/* This span is our normal button text. We hide it if loading */}
                             <span className={loading ? 'opacity-0' : ''}>Submit</span>
-
-                            {/* If loading, place spinner on top */}
                             {loading && (
                                 <Loader2 className="absolute inset-0 m-auto h-5 w-5 animate-spin" />
                             )}
