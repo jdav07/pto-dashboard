@@ -1,5 +1,5 @@
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { api } from '@/lib/api';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -41,7 +41,7 @@ export function LoginForm({ className, setToken, ...props }: LoginFormProps) {
 
   async function onSubmit(values: z.infer<typeof loginSchema>) {
     try {
-      const res = await axios.post('/auth/login', values);
+      const res = await api.post('/auth/login', values);
       const { token } = res.data;
       localStorage.setItem('token', token);
       setToken(token);

@@ -1,7 +1,7 @@
 export interface User {
   id: number;
   email: string;
-  password: string; // hashed
+  password: string;
   maxPtoHours: number;
   usedPtoHours: number;
 }
@@ -9,7 +9,7 @@ export interface User {
 export interface PtoRequest {
   id?: number;
   userId: number;
-  requestDate: string; // or Date
+  requestDate: string;
   hours: number;
   reason: string;
 }

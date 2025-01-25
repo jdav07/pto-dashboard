@@ -7,12 +7,12 @@ import DashboardPage from '@/app/dashboard/page';
 import NewRequestPage from '@/app/new-request/page';
 
 export default function App() {
-  // Store the token in state so if it changes, the app and header re-render
+
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
 
   return (
     <div className="min-h-screen flex flex-col w-full">
-      {/* Pass BOTH token and setToken to the Header */}
+
       <Header token={token} setToken={setToken} />
 
       <div className="flex justify-center">
@@ -29,7 +29,6 @@ export default function App() {
             element={token ? <NewRequestPage /> : <Navigate to="/login" />}
           />
 
-          {/* Fallback */}
           <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
       </div>

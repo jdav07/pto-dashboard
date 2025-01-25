@@ -6,7 +6,7 @@ interface LoginPageProps {
 
 export default function LoginPage({ setToken }: LoginPageProps) {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-6 w-1/2 align-center">
+    <div className="flex min-h-screen flex-col items-center justify-center p-6 w-full md:w-1/2 align-center">
       <div className="w-full max-w-[700px]">
         <LoginForm setToken={setToken} />
       </div>
