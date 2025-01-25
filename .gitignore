@@ -8,7 +8,8 @@ node_modules/
 
 # Production
 /build
-/dist
+dist/
+data
 
 # Environment files
 .env
@@ -57,3 +58,7 @@ Thumbs.db
 
 # Yarn Integrity file
 .yarn-integrity
+
+
+data/*
+!data/.gitkeep
