@@ -22,7 +22,6 @@ export class PTOStore {
   balance: PtoBalance | null = null;
   requests: PtoRequest[] = [];
   loading = false;
-  error: string | null = null;
 
   constructor(private rootStore: RootStore) {
     makeAutoObservable(this);
@@ -31,19 +30,16 @@ export class PTOStore {
   reset() {
     this.balance = null;
     this.requests = [];
-    this.error = null;
   }
 
   async fetchBalance() {
     if (!this.rootStore.authStore.token) return;
-    
     this.loading = true;
     try {
       const headers = { Authorization: `Bearer ${this.rootStore.authStore.token}` };
       const response = await api.get('/pto/balance', { headers });
       this.balance = response.data;
-    } catch (err: any) {
-      this.error = err.response?.data?.error || 'Unable to fetch balance';
+    } catch (err) {
       throw err;
     } finally {
       this.loading = false;
@@ -52,14 +48,12 @@ export class PTOStore {
 
   async fetchRequests() {
     if (!this.rootStore.authStore.token) return;
-
     this.loading = true;
     try {
       const headers = { Authorization: `Bearer ${this.rootStore.authStore.token}` };
       const response = await api.get('/pto/requests', { headers });
       this.requests = response.data;
-    } catch (err: any) {
-      this.error = err.response?.data?.error || 'Unable to fetch requests';
+    } catch (err) {
       throw err;
     } finally {
       this.loading = false;
@@ -68,21 +62,18 @@ export class PTOStore {
 
   async submitRequest(requestDate: string, hours: number, reason: string) {
     if (!this.rootStore.authStore.token) return;
-
     this.loading = true;
     try {
       const headers = { Authorization: `Bearer ${this.rootStore.authStore.token}` };
       await api.post('/pto/request', { requestDate, hours, reason }, { headers });
       
-      // Refresh data after successful submission
+      // After success, refresh data
       await Promise.all([
         this.fetchBalance(),
         this.fetchRequests()
       ]);
-      
       return true;
-    } catch (err: any) {
-      this.error = err.response?.data?.error || 'Failed to submit request';
+    } catch (err) {
       throw err;
     } finally {
       this.loading = false;
