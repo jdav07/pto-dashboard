@@ -1,9 +1,7 @@
-// stores/AuthStore.ts
 import { makeAutoObservable } from 'mobx';
 import { RootStore } from './RootStore';
 import { api } from '@/lib/api';
 
-// stores/AuthStore.ts
 export class AuthStore {
   token: string | null = localStorage.getItem('token');
   userEmail: string | null = localStorage.getItem('userEmail');
