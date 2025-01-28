@@ -1,37 +1,24 @@
-// src/App.tsx
-import { useState } from 'react';
+// App.tsx
 import { Routes, Route, Navigate } from 'react-router-dom';
-import Header from '@/components/Header';
-import LoginPage from '@/app/login/page';
-import DashboardPage from '@/app/dashboard/page';
-import NewRequestPage from '@/app/new-request/page';
+import { Layout } from '@/routes/Layout';
+import { LoginRoute } from '@/routes/LoginRoute';
+import { DashboardRoute } from '@/routes/DashboardRoute';
+import { NewRequestRoute } from '@/routes/NewRequestRoute';
 
 export default function App() {
-
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
-
   return (
-    <div className="min-h-screen flex flex-col w-full">
-
-      <Header token={token} setToken={setToken} />
-
-      <div className="flex justify-center">
-        <Routes>
-          <Route path="/login" element={<LoginPage setToken={setToken} />} />
-
-          <Route
-            path="/dashboard"
-            element={token ? <DashboardPage /> : <Navigate to="/login" />}
-          />
-
-          <Route
-            path="/new-request"
-            element={token ? <NewRequestPage /> : <Navigate to="/login" />}
-          />
-
-          <Route path="*" element={<Navigate to="/login" />} />
-        </Routes>
-      </div>
-    </div>
+    <Routes>
+      <Route element={<Layout />}>
+        <Route path="/login" element={<LoginRoute />} />
+        <Route path="/dashboard" element={<DashboardRoute />} />
+        <Route path="/new-request" element={<NewRequestRoute />} />
+        {/* Redirect root to login or dashboard based on auth status */}
+        <Route
+          path="/"
+          element={<Navigate to="/dashboard" replace />}
+        />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Route>
+    </Routes>
   );
 }
