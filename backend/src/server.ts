@@ -1,8 +1,8 @@
 import Koa from 'koa';
 import bodyParser from 'koa-bodyparser';
 import cors from '@koa/cors';
-import router from '@/routes';
-import { db } from '@/db/index';
+import router from './routes';
+import { db } from './db/index';
 
 const PORT = process.env.PORT || 4000;
 

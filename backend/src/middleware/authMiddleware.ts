@@ -10,8 +10,11 @@ export async function authMiddleware(ctx: Context, next: Next) {
   }
 
   const token = header.replace('Bearer ', '');
-  const SECRET_KEY = process.env.JWT_SECRET_KEY || 'default-dev-key';
-
+  const SECRET_KEY = process.env.JWT_SECRET_KEY;
+  if (!SECRET_KEY) {
+    throw new Error('JWT_SECRET_KEY environment variable is required');
+  }
+  
   try {
     const decoded = jwt.verify(token, SECRET_KEY);
     if (typeof decoded === 'string' || !('userId' in decoded)) {

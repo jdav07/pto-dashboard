@@ -1,5 +1,5 @@
 import { Context } from 'koa';
-import { AuthService } from '@/services/AuthService';
+import { AuthService } from '../services/AuthService';
 
 interface LoginBody {
   email: string;

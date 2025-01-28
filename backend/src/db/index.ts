@@ -1,8 +1,8 @@
 import sqlite3 from 'sqlite3';
 import { open, Database } from 'sqlite';
 import bcrypt from 'bcrypt';
-import { User } from '@/models/User';
-import { PtoRequest } from '@/models/PtoRequest';
+import { User } from '../models/User';
+import { PtoRequest } from '../models/PtoRequest';
 
 let dbInstance: Database<sqlite3.Database, sqlite3.Statement>;
 

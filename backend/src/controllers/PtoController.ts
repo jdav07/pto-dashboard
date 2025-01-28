@@ -1,5 +1,5 @@
 import { Context } from 'koa';
-import { PtoService } from '@/services/PtoService';
+import { PtoService } from '../services/PtoService';
 
 interface PtoRequestBody {
   requestDate: string;

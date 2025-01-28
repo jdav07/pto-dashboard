@@ -1,5 +1,5 @@
-import { db } from '@/db/index';
-import { PtoRequest } from '@/models/PtoRequest';
+import { db } from '../db/index';
+import { PtoRequest } from '../models/PtoRequest';
 
 export class PtoService {
   async getBalance(userId: number) {

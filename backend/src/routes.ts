@@ -1,9 +1,9 @@
 import Router from 'koa-router';
-import { AuthService } from '@/services/AuthService';
-import { PtoService } from '@/services/PtoService';
-import { AuthController } from '@/controllers/AuthController';
-import { PtoController } from '@/controllers/PtoController';
-import { authMiddleware } from '@/middleware/authMiddleware';
+import { AuthService } from './services/AuthService';
+import { PtoService } from './services/PtoService';
+import { AuthController } from './controllers/AuthController';
+import { PtoController } from './controllers/PtoController';
+import { authMiddleware } from './middleware/authMiddleware';
 
 const router = new Router();
 
