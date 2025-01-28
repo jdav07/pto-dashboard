@@ -1,4 +1,3 @@
-// stores/PTOStore.ts
 import { makeAutoObservable } from 'mobx';
 import { RootStore } from './RootStore';
 import { api } from '@/lib/api';
@@ -23,6 +22,8 @@ export class PTOStore {
   requests: PtoRequest[] = [];
   loading = false;
 
+  error: string | null = null;
+
   constructor(private rootStore: RootStore) {
     makeAutoObservable(this);
   }
@@ -30,6 +31,11 @@ export class PTOStore {
   reset() {
     this.balance = null;
     this.requests = [];
+    this.error = null;
+  }
+
+  clearError() {
+    this.error = null;
   }
 
   async fetchBalance() {
@@ -39,7 +45,8 @@ export class PTOStore {
       const headers = { Authorization: `Bearer ${this.rootStore.authStore.token}` };
       const response = await api.get('/pto/balance', { headers });
       this.balance = response.data;
-    } catch (err) {
+    } catch (err: any) {
+      this.error = err.response?.data?.error || 'Failed to fetch balance';
       throw err;
     } finally {
       this.loading = false;
@@ -53,7 +60,8 @@ export class PTOStore {
       const headers = { Authorization: `Bearer ${this.rootStore.authStore.token}` };
       const response = await api.get('/pto/requests', { headers });
       this.requests = response.data;
-    } catch (err) {
+    } catch (err: any) {
+      this.error = err.response?.data?.error || 'Failed to fetch requests';
       throw err;
     } finally {
       this.loading = false;
@@ -66,14 +74,15 @@ export class PTOStore {
     try {
       const headers = { Authorization: `Bearer ${this.rootStore.authStore.token}` };
       await api.post('/pto/request', { requestDate, hours, reason }, { headers });
-      
+
       // After success, refresh data
       await Promise.all([
-        this.fetchBalance(),
+        this.fetchBalance(), 
         this.fetchRequests()
       ]);
       return true;
-    } catch (err) {
+    } catch (err: any) {
+      this.error = err.response?.data?.error || 'Failed to submit request';
       throw err;
     } finally {
       this.loading = false;

@@ -1,7 +1,7 @@
+// src/viewModels/PTO/DashboardViewModel.ts
 import { makeAutoObservable } from 'mobx';
 import { PTOStore, PtoRequest } from '@/stores/PTOStore';
 
-// Interface for our transformed balance card data
 interface BalanceCard {
   title: string;
   description: string;
@@ -10,14 +10,11 @@ interface BalanceCard {
 
 export class DashboardViewModel {
   constructor(private ptoStore: PTOStore) {
-    // Make this class observable so React components can react to its changes
     makeAutoObservable(this);
   }
 
-  // Transform the raw balance data into a format suitable for our card components
   get balanceCards(): BalanceCard[] {
     if (!this.ptoStore.balance) return [];
-
     return [
       {
         title: 'Max Hours',
@@ -37,14 +34,13 @@ export class DashboardViewModel {
     ];
   }
 
-  // Sort requests by date in descending order
+  // Sort requests by date desc
   get sortedRequests(): PtoRequest[] {
     return [...this.ptoStore.requests].sort(
       (a, b) => new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime()
     );
   }
 
-  // Computed properties for loading and error states
   get isLoading(): boolean {
     return this.ptoStore.loading;
   }
@@ -53,21 +49,23 @@ export class DashboardViewModel {
     return this.ptoStore.error;
   }
 
-  // Method to determine badge variant based on status
-  getBadgeVariant(status?: string): "secondary" | "default" | "destructive" | "outline" {
+  clearError() {
+    this.ptoStore.clearError();
+  }
+
+  getBadgeVariant(status?: string): 'secondary' | 'default' | 'destructive' | 'outline' {
     switch (status) {
-      case "pending":
-        return "secondary";
-      case "approved":
-        return "default";
-      case "denied":
-        return "destructive";
+      case 'pending':
+        return 'secondary';
+      case 'approved':
+        return 'default';
+      case 'denied':
+        return 'destructive';
       default:
-        return "outline";
+        return 'outline';
     }
   }
 
-  // Method to load initial data
   async loadData() {
     try {
       await Promise.all([
@@ -75,8 +73,7 @@ export class DashboardViewModel {
         this.ptoStore.fetchRequests()
       ]);
     } catch (error) {
-      // Error handling is already done in the store
-      console.error('Failed to load dashboard data');
+      console.error('Failed to load dashboard data', error);
     }
   }
 }

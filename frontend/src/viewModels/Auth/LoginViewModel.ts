@@ -1,4 +1,4 @@
-// viewModels/Auth/LoginViewModel.ts
+// src/viewModels/Auth/LoginViewModel.ts
 import { makeAutoObservable } from 'mobx';
 import { AuthStore } from '@/stores/AuthStore';
 
@@ -25,9 +25,16 @@ export class LoginViewModel {
     this.error = null;
 
     try {
-      return await this.authStore.login(email, password);
+      const success = await this.authStore.login(email, password);
+      if (success) {
+        this.authStore.clearError();
+      } else {
+        this.error = this.authStore.error;
+      }
+      return success;
     } catch (err: any) {
-      this.error = err.message;
+      // Fallback if something throws unexpectedly
+      this.error = err.message || 'Login error';
       return false;
     } finally {
       this.loading = false;
@@ -40,7 +47,6 @@ export class LoginViewModel {
     if (!this.username.trim()) {
       errors.username = 'Username is required';
     }
-
     if (!this.password) {
       errors.password = 'Password is required';
     }

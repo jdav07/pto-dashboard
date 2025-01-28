@@ -6,12 +6,14 @@ export class AuthStore {
   token: string | null = localStorage.getItem('token');
   userEmail: string | null = localStorage.getItem('userEmail');
   loading = false;
+
+  /** Add an error field to store auth-related errors (login, token, etc.). */
   error: string | null = null;
- 
+
   constructor(private rootStore: RootStore) {
     makeAutoObservable(this);
   }
- 
+
   setToken(token: string | null) {
     this.token = token;
     if (token) {
@@ -22,7 +24,7 @@ export class AuthStore {
       this.userEmail = null;
     }
   }
- 
+
   setUserEmail(email: string | null) {
     this.userEmail = email;
     if (email) {
@@ -31,10 +33,18 @@ export class AuthStore {
       localStorage.removeItem('userEmail');
     }
   }
- 
+
+  clearError() {
+    this.error = null;
+  }
+
   logout() {
     this.setToken(null);
     this.setUserEmail(null);
+
+    this.rootStore.ptoStore.clearError();
+
+    this.clearError();
     this.rootStore.ptoStore.reset();
   }
 
@@ -45,7 +55,6 @@ export class AuthStore {
   async login(email: string, password: string) {
     this.loading = true;
     this.error = null;
-    
     try {
       const response = await api.post('/auth/login', { email, password });
       this.setToken(response.data.token);
@@ -58,4 +67,4 @@ export class AuthStore {
       this.loading = false;
     }
   }
- }
+}

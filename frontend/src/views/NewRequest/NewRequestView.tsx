@@ -1,4 +1,3 @@
-// src/views/NewRequest/NewRequestView.tsx
 import { observer } from 'mobx-react-lite';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -7,7 +6,7 @@ import { NewRequestViewModel } from '@/viewModels/PTO/NewRequestViewModel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { CalendarIcon } from 'lucide-react';
+import { Loader2, CalendarIcon } from 'lucide-react';
 import {
   Form,
   FormField,
@@ -30,8 +29,8 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 interface NewRequestFormValues {
   requestDate: string;
@@ -47,7 +46,6 @@ export const NewRequestView = observer(({ viewModel }: NewRequestViewProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // We use react-hook-form for local state
   const form = useForm<NewRequestFormValues>({
     defaultValues: {
       requestDate: '',
@@ -56,62 +54,52 @@ export const NewRequestView = observer(({ viewModel }: NewRequestViewProps) => {
     },
   });
 
-  async function onSubmit(data: NewRequestFormValues) {
-    // 1) Validate on the client side
-    const validation = viewModel.validateForm(
-      data.requestDate,
-      data.hours,
-      data.reason
-    );
-    if (!validation.valid) {
-      // Show errors in react-hook-form, or just do a quick toast
-      if (validation.errors.requestDate) {
-        form.setError('requestDate', { message: validation.errors.requestDate });
-      }
-      if (validation.errors.hours) {
-        form.setError('hours', { message: validation.errors.hours });
-      }
-      if (validation.errors.reason) {
-        form.setError('reason', { message: validation.errors.reason });
-      }
-      return;
-    }
-
-    try {
-      // 2) Attempt submission via the view model
-      await viewModel.submitPtoRequest(
-        data.requestDate,
-        data.hours,
-        data.reason
-      );
-
-      // 3) On success, show a success toast
-      toast({
-        title: 'Request Submitted',
-        description: `Successfully created a request for ${data.hours} hour(s) on ${data.requestDate}.`,
-      });
-
-      // 4) Navigate to Dashboard
-      navigate('/dashboard');
-      // The toast stays up by default for a while, so user will see it
-
-    } catch (error: any) {
-      // 5) On error, show a destructive toast with the message from the server
-      const errMsg =
-        error?.response?.data?.error || 'Failed to submit PTO request';
-
-      toast({
-        title: 'Error',
-        description: errMsg,
-        variant: 'destructive',
-      });
-    }
-  }
-
   function handleDateSelect(date: Date | undefined, onChange: (value: string) => void) {
     if (!date) return;
     const formatted = format(date, 'MM/dd/yyyy');
     onChange(formatted);
+  }
+
+  async function onSubmit(data: NewRequestFormValues) {
+
+    const validation = viewModel.validateForm(data.requestDate, data.hours, data.reason);
+    if (!validation.valid) {
+
+      Object.entries(validation.errors).forEach(([fieldName, errorMessage]) => {
+        form.setError(fieldName as keyof NewRequestFormValues, {
+          message: errorMessage,
+        });
+      });
+      return;
+    }
+
+
+    try {
+      await viewModel.submitPtoRequest(data.requestDate, data.hours, data.reason);
+
+      toast({
+        variant: 'default',
+        title: 'Success',
+        description: 'Your PTO request has been submitted!',
+      });
+
+      navigate('/dashboard');
+    } catch (err: any) {
+
+      if (err?.response?.data?.error) {
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: err.response.data.error,
+        });
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: err?.message || 'Failed to submit request',
+        });
+      }
+    }
   }
 
   return (
@@ -132,7 +120,7 @@ export const NewRequestView = observer(({ viewModel }: NewRequestViewProps) => {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          {/* Date Field */}
+          {/* requestDate Field */}
           <FormField
             control={form.control}
             name="requestDate"
@@ -158,12 +146,7 @@ export const NewRequestView = observer(({ viewModel }: NewRequestViewProps) => {
                     <Calendar
                       mode="single"
                       initialFocus
-                      // The date object for the string
-                      selected={
-                        field.value
-                          ? viewModel.parseDateString(field.value)
-                          : undefined
-                      }
+                      selected={field.value ? viewModel.parseDateString(field.value) : undefined}
                       disabled={viewModel.isDateDisabled}
                       onSelect={(date) => handleDateSelect(date, field.onChange)}
                     />
@@ -174,7 +157,7 @@ export const NewRequestView = observer(({ viewModel }: NewRequestViewProps) => {
             )}
           />
 
-          {/* Hours Field */}
+          {/* hours Field */}
           <FormField
             control={form.control}
             name="hours"
@@ -189,7 +172,7 @@ export const NewRequestView = observer(({ viewModel }: NewRequestViewProps) => {
             )}
           />
 
-          {/* Reason Field */}
+          {/* reason Field */}
           <FormField
             control={form.control}
             name="reason"
@@ -197,31 +180,30 @@ export const NewRequestView = observer(({ viewModel }: NewRequestViewProps) => {
               <FormItem>
                 <FormLabel>Reason</FormLabel>
                 <FormControl>
-                  <Textarea
-                    placeholder="Vacation, appointment, etc."
-                    {...field}
-                  />
+                  <Textarea placeholder="Vacation, appointment, etc." {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
+          {/* The “submit” button */}
           <div className="grid grid-flow-col gap-4">
-            <Button type="submit" className="relative">
-              <span>Submit</span>
-              {/* If you want a spinner, handle store’s loading, or your own local loading. */}
-            </Button>
-
-            <Button
-              variant="outline"
-              onClick={() => navigate('/dashboard')}
-            >
-              Cancel
+            <Button type="submit" disabled={viewModel.loading} className="relative">
+              <span className={viewModel.loading ? 'opacity-0' : ''}>Submit</span>
+              {viewModel.loading && (
+                <Loader2 className="absolute inset-0 m-auto h-5 w-5 animate-spin" />
+              )}
             </Button>
           </div>
         </form>
       </Form>
+
+      <div className="grid grid-flow-col gap-4 mt-4">
+        <Button variant="outline" onClick={() => navigate('/dashboard')}>
+          Cancel
+        </Button>
+      </div>
     </div>
   );
 });
