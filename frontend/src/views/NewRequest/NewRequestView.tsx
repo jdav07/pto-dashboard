@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -46,6 +47,9 @@ export const NewRequestView = observer(({ viewModel }: NewRequestViewProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Local state to control whether the popover (date picker) is open
+  const [popoverOpen, setPopoverOpen] = useState(false);
+
   const form = useForm<NewRequestFormValues>({
     defaultValues: {
       requestDate: '',
@@ -58,13 +62,13 @@ export const NewRequestView = observer(({ viewModel }: NewRequestViewProps) => {
     if (!date) return;
     const formatted = format(date, 'MM/dd/yyyy');
     onChange(formatted);
+
+    setPopoverOpen(false);
   }
 
   async function onSubmit(data: NewRequestFormValues) {
-
     const validation = viewModel.validateForm(data.requestDate, data.hours, data.reason);
     if (!validation.valid) {
-
       Object.entries(validation.errors).forEach(([fieldName, errorMessage]) => {
         form.setError(fieldName as keyof NewRequestFormValues, {
           message: errorMessage,
@@ -72,7 +76,6 @@ export const NewRequestView = observer(({ viewModel }: NewRequestViewProps) => {
       });
       return;
     }
-
 
     try {
       await viewModel.submitPtoRequest(data.requestDate, data.hours, data.reason);
@@ -85,7 +88,6 @@ export const NewRequestView = observer(({ viewModel }: NewRequestViewProps) => {
 
       navigate('/dashboard');
     } catch (err: any) {
-
       if (err?.response?.data?.error) {
         toast({
           variant: 'destructive',
@@ -127,7 +129,10 @@ export const NewRequestView = observer(({ viewModel }: NewRequestViewProps) => {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Date</FormLabel>
-                <Popover>
+                <Popover
+                  open={popoverOpen}
+                  onOpenChange={setPopoverOpen} // keep local state in sync
+                >
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
@@ -146,7 +151,11 @@ export const NewRequestView = observer(({ viewModel }: NewRequestViewProps) => {
                     <Calendar
                       mode="single"
                       initialFocus
-                      selected={field.value ? viewModel.parseDateString(field.value) : undefined}
+                      selected={
+                        field.value
+                          ? viewModel.parseDateString(field.value)
+                          : undefined
+                      }
                       disabled={viewModel.isDateDisabled}
                       onSelect={(date) => handleDateSelect(date, field.onChange)}
                     />
