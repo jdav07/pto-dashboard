@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "dev": "tsx watch --clear-screen src/index.ts",
+    "dev": "tsx watch --clear-screen src/server.ts",
     "build": "tsc",
     "start": "node -r tsconfig-paths/register dist/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
