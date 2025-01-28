@@ -11,8 +11,8 @@ async function initDB() {
     // If in production, store in RAILWAY_VOLUME_MOUNT_PATH + "/pto.db"
     // else store in local "./data/pto.db".
     const dbPath = process.env.NODE_ENV === 'production'
-      ? process.env.RAILWAY_VOLUME_MOUNT_PATH + '/pto.db'
-      : './data/pto.db';
+        ? process.env.RAILWAY_VOLUME_MOUNT_PATH + '/pto.db'
+        : './data/pto.db';
 
     dbInstance = await open({
       filename: dbPath,
@@ -41,28 +41,28 @@ async function initDB() {
       )
     `);
 
-    // Check if any users exist; if none, seed data
+    // Seed if no users
     const existingUsers = await dbInstance.all(`SELECT * FROM users`);
     if (existingUsers.length === 0) {
       const saltRounds = 10;
-
-      // Create two user accounts: John and Jane
       const hashedJohn = await bcrypt.hash('password', saltRounds);
       const hashedJane = await bcrypt.hash('mypassword', saltRounds);
 
-      // Insert John
-      const johnId = (await dbInstance.run(`
-        INSERT INTO users (email, password, maxPtoHours, usedPtoHours)
-        VALUES ('john@example.com', '${hashedJohn}', 120, 0)
-      `)).lastID;
+      const johnId = (
+        await dbInstance.run(`
+          INSERT INTO users (email, password, maxPtoHours, usedPtoHours)
+          VALUES ('john@example.com', '${hashedJohn}', 120, 0)
+        `)
+      ).lastID;
 
-      // Insert Jane
-      const janeId = (await dbInstance.run(`
-        INSERT INTO users (email, password, maxPtoHours, usedPtoHours)
-        VALUES ('jane@example.com', '${hashedJane}', 120, 0)
-      `)).lastID;
+      const janeId = (
+        await dbInstance.run(`
+          INSERT INTO users (email, password, maxPtoHours, usedPtoHours)
+          VALUES ('jane@example.com', '${hashedJane}', 120, 0)
+        `)
+      ).lastID;
 
-      // --- PTO requests for John
+      // John’s PTO
       await dbInstance.run(`
         INSERT INTO pto_requests (userId, requestDate, hours, reason, status)
         VALUES (${johnId}, '01/10/2025', 16, 'Vacation', 'approved')
@@ -76,12 +76,11 @@ async function initDB() {
         VALUES (${johnId}, '01/20/2025', 8, 'Doctor Appointment', 'pending')
       `);
 
-      // Update John’s used hours
       await dbInstance.run(`
         UPDATE users SET usedPtoHours = 48 WHERE id = ${johnId}
       `);
 
-      // --- PTO requests for Jane
+      // Jane’s PTO
       await dbInstance.run(`
         INSERT INTO pto_requests (userId, requestDate, hours, reason, status)
         VALUES (${janeId}, '01/05/2025', 8, 'Vacation', 'approved')
@@ -99,7 +98,6 @@ async function initDB() {
         VALUES (${janeId}, '01/18/2025', 8, 'Errands', 'pending')
       `);
 
-      // Update Jane’s used hours
       await dbInstance.run(`
         UPDATE users SET usedPtoHours = 40 WHERE id = ${janeId}
       `);
@@ -109,7 +107,6 @@ async function initDB() {
 }
 
 export const db = {
-  // Called in server.ts to ensure DB is ready before listening
   async connect() {
     return initDB();
   },
@@ -118,36 +115,69 @@ export const db = {
     const db = await initDB();
     const row = await db.get(`SELECT * FROM users WHERE id = ?`, [id]);
     if (!row) return null;
-    return { ...row };
+
+    return {
+      ...row,
+      maxPtoHours: Number(row.maxPtoHours),
+      usedPtoHours: Number(row.usedPtoHours),
+    };
   },
 
   async findUserByEmail(email: string): Promise<User | null> {
     const db = await initDB();
     const row = await db.get(`SELECT * FROM users WHERE email = ?`, [email]);
     if (!row) return null;
-    return { ...row };
+
+    return {
+      ...row,
+      maxPtoHours: Number(row.maxPtoHours),
+      usedPtoHours: Number(row.usedPtoHours),
+    };
   },
 
   async updateUser(user: User): Promise<void> {
     const db = await initDB();
-    await db.run(`
+    await db.run(
+      `
       UPDATE users
       SET email = ?, password = ?, maxPtoHours = ?, usedPtoHours = ?
       WHERE id = ?
-    `, [user.email, user.password, user.maxPtoHours, user.usedPtoHours, user.id]);
+    `,
+      [
+        user.email,
+        user.password,
+        user.maxPtoHours,
+        user.usedPtoHours,
+        user.id,
+      ]
+    );
   },
 
   async getRequestsByUserId(userId: number): Promise<PtoRequest[]> {
     const db = await initDB();
-    const rows = await db.all(`SELECT * FROM pto_requests WHERE userId = ?`, [userId]);
-    return rows.map((r: any) => ({ ...r }));
+    const rows = await db.all(`SELECT * FROM pto_requests WHERE userId = ?`, [
+      userId,
+    ]);
+    return rows.map((r: any) => ({
+      ...r,
+      hours: Number(r.hours),
+    }));
   },
 
   async createPtoRequest(request: PtoRequest): Promise<void> {
     const db = await initDB();
-    await db.run(`
+    await db.run(
+      `
       INSERT INTO pto_requests (userId, requestDate, hours, reason, status)
       VALUES (?, ?, ?, ?, ?)
-    `, [request.userId, request.requestDate, request.hours, request.reason, request.status || 'pending']);
-  }
+    `,
+      [
+        request.userId,
+        request.requestDate,
+        request.hours,
+        request.reason,
+        request.status || 'pending',
+      ]
+    );
+  },
 };
