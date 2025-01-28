@@ -97,12 +97,6 @@ export const LoginForm = observer(
                     )}
                   />
 
-                  {viewModel.error && (
-                    <p className="text-red-600 text-sm -mt-4">
-                      {viewModel.error}
-                    </p>
-                  )}
-
                   <Button type="submit" className="w-full" disabled={viewModel.loading}>
                     {viewModel.loading ? 'Logging in...' : 'Login'}
                   </Button>
