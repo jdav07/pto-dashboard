@@ -1,4 +1,4 @@
-// stores/RootStore.ts
+// src/stores/RootStore.ts
 import { PTOStore } from './PTOStore';
 import { AuthStore } from './AuthStore';
 

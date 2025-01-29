@@ -1,3 +1,4 @@
+// src/models/PtoRequest.ts
 export interface PtoRequest {
     id: number;
     userId: number;

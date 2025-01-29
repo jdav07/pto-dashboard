@@ -1,3 +1,4 @@
+// src/middleware/authMiddleware.ts
 import { Context, Next } from 'koa';
 import jwt from 'jsonwebtoken';
 

@@ -1,3 +1,4 @@
+// src/server.ts
 import Koa from 'koa';
 import bodyParser from 'koa-bodyparser';
 import cors from '@koa/cors';
@@ -7,7 +8,6 @@ import { db } from './db/index';
 const PORT = process.env.PORT || 4000;
 
 async function main() {
-  // Ensure DB is initialized
   await db.connect();
 
   const app = new Koa();
