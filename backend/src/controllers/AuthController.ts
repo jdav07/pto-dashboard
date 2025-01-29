@@ -1,3 +1,4 @@
+// src/controllers/AuthController.ts
 import { Context } from 'koa';
 import { AuthService } from '../services/AuthService';
 

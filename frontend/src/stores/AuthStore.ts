@@ -1,3 +1,4 @@
+// src/stores/AuthStore.ts
 import { makeAutoObservable } from 'mobx';
 import { RootStore } from './RootStore';
 import { api } from '@/lib/api';
